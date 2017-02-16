@@ -14,42 +14,41 @@ APP_PATH='/opt/steam/7d2d'
 
 #-------DO NOT EDIT BELOW THIS LINE--------
 
+err(){
+  # Prints to stderr in red color
+  echo -e "\033[0;31m${1}\033[0m" 1>&2
+}
 
 # Create a steam role account if it doesn't exist
-id -u $ROLE_ACCT >/dev/null 2>&1
-if [ $? -eq 1 ]
-then
-  sudo useradd -m ${ROLE_ACCT}
-  if [ $? -ne 0 ]
-  then
-    echo "Failed to create ${ROLE_ACCT}"
+id -u $ROLE_ACCT >/dev/null 2>&1 || {
+  sudo useradd -m ${ROLE_ACCT} || {
+    err "Failed to create ${ROLE_ACCT}"
     exit 1
-  fi
-fi
+  }
+}
 
-# create folders
-sudo mkdir -p ${STEAM_PATH}
-if [ $? -ne 0 ]
-then
-  echo "Failed to create ${STEAM_PATH}"
+# Add current user to ROLE_ACCT group
+sudo usermod -a -G ${ROLE_ACCT} ${USER} || {
+  err "Failed to add ${USER} to group: ${ROLE_ACCT}"
   exit 1
-fi
+}
 
-sudo mkdir -p ${APP_PATH}
-if [ $? -ne 0 ]
-then
-  echo "Failed to create ${APP_PATH}"
+# create steam and app folders
+sudo mkdir -p ${STEAM_PATH} || {
+  err "Failed to create ${STEAM_PATH}"
   exit 1
-fi
+}
 
-
-sudo chown -Rv steam:steam ${STEAM_PATH} ${APP_PATH}
-if [ $? -ne 0 ]
-then
-  echo "Failed to set ownership for ${ROLE_ACCT}"
+sudo mkdir -p ${APP_PATH} || {
+  err "Failed to create ${APP_PATH}"
   exit 1
-fi
+}
 
+
+sudo chown -Rv steam:steam ${STEAM_PATH} ${APP_PATH} || {
+  err "Failed to set ownership for ${ROLE_ACCT}"
+  exit 1
+}
 
 # Install steamcmd
 # Steps from https://developer.valvesoftware.com/wiki/SteamCMD#Manually
