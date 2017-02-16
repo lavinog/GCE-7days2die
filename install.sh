@@ -12,6 +12,10 @@ STEAM_PATH='/opt/steam'
 #Application Path
 APP_PATH='/opt/steam/7d2d'
 
+# Location of systemd service config
+SYSTEMD_SERVICE='game-7d2d'
+SYSTEMD_FILE="/etc/systemd/system/${SYSTEMD_SERVICE}.service"
+
 #-------DO NOT EDIT BELOW THIS LINE--------
 
 err(){
@@ -61,3 +65,32 @@ cd ${STEAM_PATH}
 curl -sqL "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" | sudo -u ${ROLE_ACCT} tar zxvf -
 
 sudo -u ${ROLE_ACCT} ${STEAM_PATH}/steamcmd.sh +login anonymous +force_install_dir ${APP_PATH} +app_update ${APP_ID} +quit
+
+
+
+
+# Build SystemD service file
+sudo touch ${SYSTEMD_FILE}
+sudo chmod 664 ${SYSTEMD_FILE}
+
+cat <<EOF | sudo tee ${SYSTEMD_FILE} >/dev/null
+[Unit]
+Description=7 Days to Die Server
+After=network.target
+
+[Service]
+Type=idle
+User=${ROLE_ACCT}
+WorkingDirectory=${APP_PATH}
+ExecStart=${APP_PATH}/startserver.sh -configfile=serverconfig.xml
+KillSignal=SIGINT
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+# Reload Systemd and enable autostart
+# use sudo systemctl disable service to disable autostart
+sudo systemctl daemon-reload
+sudo systemctl enable ${SYSTEMD_SERVICE}.service
