@@ -1,0 +1,15 @@
+[Unit]
+Description=7 Days to Die Server
+After=network.target
+
+[Service]
+Type=idle
+User=steam
+WorkingDirectory=/opt/steam/7d2d/
+ExecStart=/opt/steam/7d2d/startserver.sh -configfile=serverconfig.xml
+KillSignal=SIGINT
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target
+Alias=game7d2d.service
