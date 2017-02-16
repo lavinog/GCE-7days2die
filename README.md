@@ -12,3 +12,9 @@ http://console.cloud.google.com
 * Billing enabled on cloud console
 
 ### Create Container Engine
+
+
+### Network Settings
+
+https://7dtd.illy.bz/wiki/Ports
+
