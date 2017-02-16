@@ -61,4 +61,4 @@ sudo apt -y install lib32gcc1
 cd ${STEAM_PATH}
 curl -sqL "https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz" | sudo -u ${ROLE_ACCT} tar zxvf -
 
-sudo -u ${ROLE_ACCT} ${STEAM_PATH}/steamcmd.sh +login anonymous +force_install_dir ${INSTALL_FOLDER} +app_update ${APP_ID} +quit
+sudo -u ${ROLE_ACCT} ${STEAM_PATH}/steamcmd.sh +login anonymous +force_install_dir ${APP_PATH} +app_update ${APP_ID} +quit
