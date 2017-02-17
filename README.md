@@ -24,7 +24,7 @@ None
 
 These packages are handy but not required:
 ```
-sudo apt install byobu sysstat htop
+sudo apt install byobu telnet sysstat htop
 
 ```
 At this point it is recommended that you start byobu so that if you get disconnected, it wont terminate your session.
