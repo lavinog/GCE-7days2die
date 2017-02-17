@@ -28,7 +28,7 @@ sudo apt install byobu systat
 ```
 Use the following to download the installer and make it executable
 ```
-wget https://raw.githubusercontent.com/lavinog/GCE-7days2die/master/install.sh`
+wget https://raw.githubusercontent.com/lavinog/GCE-7days2die/master/install.sh
 chmod 755 install.sh
 ```
 
