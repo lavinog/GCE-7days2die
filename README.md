@@ -15,6 +15,5 @@ http://console.cloud.google.com
 
 
 ### Network Settings
-
-https://7dtd.illy.bz/wiki/Ports
-
+tcp:26900-26901
+udp:26900-26903
