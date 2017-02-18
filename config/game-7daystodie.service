@@ -1,0 +1,14 @@
+[Unit]
+Description=7 Days to Die Server
+After=network.target
+
+[Service]
+Type=idle
+User=steam
+ExecStart=/opt/7DaysToDie/bin/start_server.sh
+ExecStop=/opt/7DaysToDie/bin/stop_server.sh
+KillSignal=SIGINT
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target
