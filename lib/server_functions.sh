@@ -12,7 +12,7 @@ source "${ETC_CONF_FILE}"
 
 check_user(){
   # Make sure we are running as the steam user
-  if [ "${USER}" != "${CONF_STEAM_USER}" ]; then
+  if [ "$(whoami)" != "${CONF_STEAM_USER}" ]; then
     echo "Please run with ${CONF_STEAM_USER} user"
     exit 1
   fi
