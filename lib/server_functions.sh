@@ -97,4 +97,13 @@ force_save(){
   telnet_command "saveworld"
 }
 
+get_latest_diff_backup(){
+  local latest=""
+  for diff_backup_file in "${CONF_GAME_PATH_BACKUPS}/${CONF_GAME_BACKUP_DIFF_PREFIX}$"*.tar.gz ; do
+    [[ ${diff_backup_file} -nt ${CONF_GAME_BACKUP_SNAPSHOT_FILE} ]] \
+      && [[ ${diff_backup_file} -nt ${latest} ]] \
+      && latest=${diff_backup_file}
+  done
+  echo ${latest}
+}
 
