@@ -77,8 +77,8 @@ start_server() {
           ${CONF_GAME_PATH_APPLICATION}/7DaysToDieServer.x86 ${run_parameters}
   fi
 
-  # Wait a sec to allow file to be closed then compress
-  sleep 1
+  # Wait a moment to allow file to be closed then compress
+  sleep .1
   /bin/gzip -9 "${log_file}"
 }
 
