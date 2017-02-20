@@ -16,4 +16,4 @@ source "${ETC_CONF_FILE}"
 source "${CONF_GAME_FILE_FUNCTION_LIB}"
 
 telnet_command "shutdown"
-sleep 2
+sleep 3
