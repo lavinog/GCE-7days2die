@@ -305,21 +305,25 @@ install_dependencies(){
 #   None
 #######################################
 install_steamcmd() {
-  info "The steamcmd tool will be downloaded from:" 'y'
-  info "    ${STEAMCMD_DOWNLOAD}" 'b'
-  info "and extracted to ${CONF_STEAM_PATH}" 'y'
-    info 'Do you wish to continue? (y/n)' 'y'
-  read -t30 -n1 -r KEY
-  echo
-  if [ "${KEY}" == "y" ]; then
-      info 'Installing steamcmd' 'g'
-      curl -sqL "${STEAMCMD_DOWNLOAD}" \
-        | sudo -u "${CONF_STEAM_USER}" tar zxvf - -C "${CONF_STEAM_PATH}"
+  if [[ -f "${CONF_STEAM_PATH}"/steamcmd.sh" ]] ; then
+    info 'The steamcmd tool is already installed.' 'y'
+ 
   else
-      info 'Cancelling install' 'r'
-      exit "${E_CANCELLED}"
+    info "The steamcmd tool will be downloaded from:" 'y'
+    info "    ${STEAMCMD_DOWNLOAD}" 'b'
+    info "and extracted to ${CONF_STEAM_PATH}" 'y'
+      info 'Do you wish to continue? (y/n)' 'y'
+    read -t30 -n1 -r KEY
+    echo
+    if [ "${KEY}" == "y" ]; then
+        info 'Installing steamcmd' 'g'
+        curl -sqL "${STEAMCMD_DOWNLOAD}" \
+          | sudo -u "${CONF_STEAM_USER}" tar zxvf - -C "${CONF_STEAM_PATH}"
+    else
+        info 'Cancelling install' 'r'
+        exit "${E_CANCELLED}"
+    fi
   fi
-  
 }
 
 #######################################
