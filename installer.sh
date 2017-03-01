@@ -34,13 +34,23 @@ readonly E_FAILED_TO_SET_PERMISSIONS=5
 #   None
 #######################################
 show_warning() {
-  echo  'This file will be installing a 7 days to die server with the following settings:'
+  echo  'This script will install a 7 days to die server with the following settings:'
+  echo '-------------------------------------------'
   grep CONF "${CURRENT_CONF_FILE}"
-  read -t30 -n1 -r -p 'Do you wish to continue? (y/n) ' KEY
+  echo '-------------------------------------------'
+  echo .
+  echo 'Additionally, this script will be running commands as root to do the following:
+  echo " * Create ${CONF_STEAM_USER} user"
+  echo " * Create ${CONF_STEAM_PATH} folder"
+  echo " * Create ${CONF_GAME_PATH} folder"
+  echo .
+  info 'Do you wish to continue? (y/n)' 'y'
+  read -t30 -n1 -r KEY
+  echo .
   if [ "${KEY}" == "y" ]; then
-      echo 'Installing'
+      info 'Starting Install' 'g'
   else
-      echo 'Exiting.'
+      info 'Cancelling install' 'r'
       exit "${E_CANCELLED}"
   fi
 }
@@ -50,12 +60,38 @@ show_warning() {
 # Globals:
 #   None
 # Arguments:
-#   None
+#   message
 # Returns:
 #   None
 #######################################
 err() {
   echo -e "\033[0;31m${1}\033[0m" 1>&2
+}
+
+#######################################
+# Displays info message in to stdout with color options
+# Globals:
+#   None
+# Arguments:
+#   color r,g,y,b
+# Returns:
+#   None
+#######################################
+info() {
+  local message="${1}"
+  local color="${2}"
+  case ${color} in
+    'r')
+      echo -e "\033[0;31m${message}\033[0m" ;;
+    'g')
+      echo -e "\033[0;32m${message}\033[0m" ;;
+    'y')
+      echo -e "\033[0;33m${message}\033[0m" ;;
+    'b')
+      echo -e "\033[0;34m${message}\033[0m" ;;
+    *)
+      echo ${message} ;;
+  esac
 }
 
 #######################################
@@ -71,18 +107,24 @@ err() {
 create_role_account(){
 
   # Create a steam role account if it doesn't exist
-  id -u "${CONF_STEAM_USER}" >/dev/null 2>&1 || {
-    sudo useradd -m "${CONF_STEAM_USER}" || {
+  if id -u "${CONF_STEAM_USER}" >/dev/null 2>&1 ; then
+    info "${CONF_STEAM_USER} user already exists" 'g'
+  else
+    info "Creating ${CONF_STEAM_USER} user using sudo" 'y'
+    if sudo useradd -m "${CONF_STEAM_USER}" ; then
+      info "${CONF_STEAM_USER} user created" 'g'
+    else
       err "Failed to create ${CONF_STEAM_USER}"
       exit "${E_ROLE_ADD_FAILED}"
-    }
-  }
-
+    fi
+  fi
+  
   # Add current user to CONF_STEAM_USER group
-  sudo usermod -a -G "${CONF_STEAM_USER}" "${USER}" || {
+  info "Adding ${USER} user to ${CONF_STEAM_USER} group using sudo" 'y'
+  if ! sudo usermod -a -G "${CONF_STEAM_USER}" "${USER}" ; then
     err "Failed to add ${USER} to group: ${CONF_STEAM_USER}"
     exit "${E_USER_GROUP_ADD_FAILED}"
-  }
+  fi
 }
 
 #######################################
@@ -96,6 +138,7 @@ create_role_account(){
 #######################################
 create_path() {
   local directory_path="${1}"
+  info "Creating ${directory_path} using sudo" 'y'
   if ! sudo mkdir -p "${directory_path}" ; then
     err "Failed to create ${directory_path}"
     exit "${E_FAILED_TO_CREATE_PATH}"
@@ -118,7 +161,8 @@ set_ownership() {
   local owner="${2}"
   local group="${3}"
   
-  if ! sudo chown -Rv "${owner}":"${group}" "${directory_path}" ; then
+  info "Changing ownership of ${directory_path} to ${owner}:${group} using sudo" 'y'
+  if ! sudo chown -Rv "${owner}:${group}" "${directory_path}" ; then
     err "Failed to set ownership for ${owner}:${group}"
     exit "${E_FAILED_TO_SET_PERMISSIONS}"
   fi
@@ -172,14 +216,31 @@ create_steam_paths(){
 #   None
 #######################################
 copy_management_scripts() {
-  sudo cp -V ./bin/* "${CONF_GAME_PATH_SCRIPTS}"
-  sudo cp -V ./lib/* "${CONF_GAME_PATH_LIB}"
-  sudo cp -V ./config/* "${CONF_GAME_PATH_CONFIGS}"
-  
-  set_ownership "${CONF_GAME_PATH}" "${CONF_STEAM_USER}" "${CONF_STEAM_USER}"
-  sudo chmod 755 "${CONF_GAME_PATH_SCRIPTS}"/*
+
+  sudo cp -v ./bin/* "${CONF_GAME_PATH_SCRIPTS}"
+  sudo cp -v ./lib/* "${CONF_GAME_PATH_LIB}"
+  sudo cp -v ./config/* "${CONF_GAME_PATH_CONFIGS}"
+
+  fix_permissions
 }
 
+
+#######################################
+# Sets the permissions on various files
+# Globals:
+#   None
+# Arguments:
+#   None
+# Returns:
+#   None
+#######################################
+fix_permissions() {
+  set_ownership "${CONF_GAME_PATH}" "${CONF_STEAM_USER}" "${CONF_STEAM_USER}"
+  info 'Setting file permissions using sudo' 'y'
+  sudo chmod -v 755 "${CONF_GAME_PATH_SCRIPTS}"/*
+  sudo chmod -v 644 "${CONF_GAME_PATH_LIB}"/*
+  sudo chmod -v 664 "${CONF_GAME_PATH_CONFIGS}"/*
+}
 
 
 #######################################
@@ -193,33 +254,22 @@ copy_management_scripts() {
 #   None
 #######################################
 install_dependencies(){
-  echo "The following packages are required and will be installed:"
-  echo " lib32gcc1 and telnet"
+  info "The following packages are required and will be installed:" 'y'
+  info " * lib32gcc1" 'b'
+  info " * telnet" 'b'
   echo .
-  echo "Additional packages can be installed to assist with management:"
-  echo "  byobu : terminal multiplexer"
-  echo "  sysstat : system performance monitor"
-  echo "  htop : interactive process monitor"
-  read -n1 -p 'Install byobu (y/n)' install_byobu
-  read -n1 -p 'Install sysstat (y/n)' install_sysstat
-  read -n1 -p 'Install htop (y/n)' install_htop
-  
-  
-
+  info 'Do you wish to continue? (y/n)' 'y'
+  read -t30 -n1 -r KEY
+  echo .
+  if [ "${KEY}" == "y" ]; then
+      info 'Installing packages' 'g'
+  else
+      info 'Cancelling install' 'r'
+      exit "${E_CANCELLED}"
+  fi
   sudo apt update
   sudo apt -y install lib32gcc1 telnet
   
-  if [[ "${install_byobu}" = "y" ]] ; then
-    sudo apt -y install byobu
-  fi
-  
-  if [[ "${install_sysstat}" = "y" ]] ; then
-    sudo apt -y install sysstat
-  fi
-  
-  if [[ "${install_htop}" = "y" ]] ; then
-    sudo apt -y install htop
-  fi
 }
 
 
@@ -235,8 +285,21 @@ install_dependencies(){
 #   None
 #######################################
 install_steamcmd() {
-  curl -sqL "${STEAMCMD_DOWNLOAD}" \
-    | sudo -u "${CONF_STEAM_USER}" tar zxvf - -C "${CONF_STEAM_PATH}"
+  info "The steamcmd tool will be downloaded from:" 'y'
+  info "    ${STEAMCMD_DOWNLOAD}" 'b'
+  info "and extracted to ${CONF_STEAM_PATH}" 'y'
+    info 'Do you wish to continue? (y/n)' 'y'
+  read -t30 -n1 -r KEY
+  echo .
+  if [ "${KEY}" == "y" ]; then
+      info 'Installing steamcmd' 'g'
+      curl -sqL "${STEAMCMD_DOWNLOAD}" \
+        | sudo -u "${CONF_STEAM_USER}" tar zxvf - -C "${CONF_STEAM_PATH}"
+  else
+      info 'Cancelling install' 'r'
+      exit "${E_CANCELLED}"
+  fi
+  
 }
 
 #######################################
@@ -251,8 +314,18 @@ install_steamcmd() {
 #   None
 #######################################
 install_application() {
-  sudo -u "${CONF_STEAM_USER}" "${CONF_STEAM_PATH}"/steamcmd.sh \
-    +login anonymous +force_install_dir "${CONF_GAME_PATH}" +app_update "${APP_ID}" +quit
+  info "The steamcmd tool will download and install the application" 'y'
+  info 'Do you wish to continue? (y/n)' 'y'
+  read -t30 -n1 -r KEY
+  echo .
+  if [ "${KEY}" == "y" ]; then
+      info 'Installing application' 'g'
+      sudo -u "${CONF_STEAM_USER}" "${CONF_STEAM_PATH}"/steamcmd.sh \
+        +login anonymous +force_install_dir "${CONF_GAME_PATH}" +app_update "${APP_ID}" +quit
+  else
+      info 'Cancelling install' 'r'
+      exit "${E_CANCELLED}"
+  fi
 }
 
 #######################################
@@ -272,7 +345,6 @@ do_install(){
   install_dependencies
   install_steamcmd
   install_application
-
 }
 
 
