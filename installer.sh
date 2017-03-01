@@ -18,7 +18,7 @@ readonly E_USER_GROUP_ADD_FAILED=3
 readonly E_FAILED_TO_CREATE_PATH=4
 readonly E_FAILED_TO_SET_PERMISSIONS=5
 readonly E_FAILED_TO_CREATE_LINK=6
-
+readonly E_FAILED_TO_CONFIGURE_SAVE=7
 
 
 
@@ -38,15 +38,15 @@ show_warning() {
   echo '-------------------------------------------'
   grep CONF "${CURRENT_CONF_FILE}"
   echo '-------------------------------------------'
-  echo .
+  echo
   echo 'Additionally, this script will be running commands as root to do the following:'
   echo " * Create ${CONF_STEAM_USER} user"
   echo " * Create ${CONF_STEAM_PATH} folder"
   echo " * Create ${CONF_GAME_PATH} folder"
-  echo .
+  echo
   info 'Do you wish to continue? (y/n)' 'y'
   read -t30 -n1 -r KEY
-  echo .
+  echo
   if [ "${KEY}" == "y" ]; then
       info 'Starting Install' 'g'
   else
@@ -277,10 +277,10 @@ install_dependencies(){
     info "The following packages are required and will be installed:" 'y'
     info " * lib32gcc1" 'b'
     info " * telnet" 'b'
-    echo .
+    echo
     info 'Do you wish to continue? (y/n)' 'y'
     read -t30 -n1 -r KEY
-    echo .
+    echo
     if [ "${KEY}" == "y" ]; then
       info 'Installing packages' 'g'
       sudo apt update
@@ -310,7 +310,7 @@ install_steamcmd() {
   info "and extracted to ${CONF_STEAM_PATH}" 'y'
     info 'Do you wish to continue? (y/n)' 'y'
   read -t30 -n1 -r KEY
-  echo .
+  echo
   if [ "${KEY}" == "y" ]; then
       info 'Installing steamcmd' 'g'
       curl -sqL "${STEAMCMD_DOWNLOAD}" \
@@ -337,7 +337,7 @@ install_application() {
   info "The steamcmd tool will download and install the application" 'y'
   info 'Do you wish to continue? (y/n)' 'y'
   read -t30 -n1 -r KEY
-  echo .
+  echo
   if [ "${KEY}" == "y" ]; then
       info 'Installing application' 'g'
       sudo -u "${CONF_STEAM_USER}" "${CONF_STEAM_PATH}"/steamcmd.sh \
@@ -367,13 +367,28 @@ configure_server() {
     info "${CONF_GAME_FILE_SERVER_CONFIG} already exists." 'g'
   else
     info "Creating ${CONF_GAME_FILE_SERVER_CONFIG}." 'y'
-    sudo -u "${CONF_STEAM_USER}" cp -v "${CONF_GAME_PATH_APPLICATION}/serverconfig.xml" "${CONF_GAME_FILE_SERVER_CONFIG}"
+    if ! sudo -u "${CONF_STEAM_USER}" \
+        cp -v "${CONF_GAME_PATH_APPLICATION}/serverconfig.xml" \
+        "${CONF_GAME_FILE_SERVER_CONFIG}" ; then
+      
+      err 'Could not copy serverconfig.xml'
+      exit E_FAILED_TO_CONFIGURE_SAVE
+    fi
   fi
-  
+
   info "Setting save path on ${CONF_GAME_FILE_SERVER_CONFIG}" 'y'
-  local find_str="<\!--property name=\"SaveGameFolder\"\s*value=\"absolute path\" \/-->"
-  local replace_str="<property name=\"SaveGameFolder\"      value=\"${CONF_GAME_PATH_SAVES}\" \/>"
-  sudo -u "${CONF_STEAM_USER}" sed -i -e "s/${find_str}/${replace_str}/" "${CONF_GAME_FILE_SERVER_CONFIG}"
+  local find_str="<\!--property name=\"SaveGameFolder\"\s*value=\"absolute path\" /-->"
+  local replace_str="<property name=\"SaveGameFolder\"      value=\"${CONF_GAME_PATH_SAVES}\" />"
+
+  if ! sudo -u "${CONF_STEAM_USER}" \
+    sed -i -e "s@${find_str}@${replace_str}@" \
+      "${CONF_GAME_FILE_SERVER_CONFIG}" ; then
+    err 'Could not set save location'
+    exit E_FAILED_TO_CONFIGURE_SAVE
+  else
+    grep SaveGameFolder "${CONF_GAME_FILE_SERVER_CONFIG}"
+  fi
+
 }
 
 #######################################
@@ -416,17 +431,17 @@ EOF
   # use sudo systemctl disable service to disable autostart
   info 'Updating systemd service list using root' 'y'
   sudo systemctl daemon-reload
-  echo .
+  echo
   info "In order for the game server to start on boot, the service must be" 'y'
   info "enabled.  This can be enabled using the following:" 'y'
   info "   sudo systemctl enable ${CONF_GAME_SERVICE_NAME}" 'b'
-  echo .
+  echo
   info 'If not enabled, you will need to start the service manually using:' 'y'
   info "   sudo systemctl start ${CONF_GAME_SERVICE_NAME}" 'b'
-  echo .
+  echo
   info "Do you want the game server to start on boot? (y/n)" 'y'
   read -t30 -n1 -r KEY
-  echo .
+  echo
   if [ "${KEY}" == "y" ]; then
       info 'Setting service to autostart' 'g'
       sudo systemctl enable "${CONF_GAME_SERVICE_NAME}"
@@ -450,24 +465,24 @@ finalize() {
   echo .
   info 'It is recommended that you edit the server config file using:' 'y'
   info "   nano ${CONF_GAME_FILE_SERVER_CONFIG}" 'b'
-  echo .
+  echo
   info 'You can use the following commands to manage the server:' 'g'
-  echo .
+  echo
   info 'To manually start the server:' 'g'
   info "   sudo systemctl start ${CONF_GAME_SERVICE_NAME}" 'b'
-  echo .
+  echo
   info 'To manually stop the server:' 'g'
   info "   sudo systemctl start ${CONF_GAME_SERVICE_NAME}" 'b'
-  echo .
+  echo
   info 'To disable auto start on boot:' 'g'
   info "   sudo systemctl disable ${CONF_GAME_SERVICE_NAME}" 'b'
-  echo .
+  echo
   info 'To enable auto start on boot:' 'g'
   info "   sudo systemctl enable ${CONF_GAME_SERVICE_NAME}" 'b'
-  echo .
+  echo
   info 'To console into the server:' 'g'
   info "   telnet localhost 8081" 'b'
-  echo .
+  echo
 
 }
 
