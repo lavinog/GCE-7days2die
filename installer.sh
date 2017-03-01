@@ -332,6 +332,22 @@ install_application() {
   fi
 }
 
+configure_server(){
+# Test if config file exists, if not copy from application
+  if [[ -f "${CONF_GAME_FILE_SERVER_CONFIG}" ]] ; then
+    info "${CONF_GAME_FILE_SERVER_CONFIG} already exists." 'g'
+  else
+    info "Creating ${CONF_GAME_FILE_SERVER_CONFIG}." 'y'
+    sudo -u "${CONF_STEAM_USER}" cp -v "${CONF_GAME_PATH_APPLICATION}/serverconfig.xml" "${CONF_GAME_FILE_SERVER_CONFIG}"
+  fi
+  
+  info "Setting save path on ${CONF_GAME_FILE_SERVER_CONFIG}" 'y'
+  local find_str="<\!--property name=\"SaveGameFolder\"\s*value=\"absolute path\" \/-->"
+  local replace_str="<property name=\"SaveGameFolder\"      value=\"${CONF_GAME_PATH_SAVES}\" \/>"
+  sudo -u "${CONF_STEAM_USER}" sed -i -e "s/${find_str}/${replace_str}/" "${CONF_GAME_FILE_SERVER_CONFIG}"
+  
+}
+
 #######################################
 # Installs everything
 # Globals:
