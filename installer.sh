@@ -8,6 +8,8 @@
 readonly E_CANCELLED=1
 readonly E_ROLE_ADD_FAILED=2
 readonly E_USER_GROUP_ADD_FAILED=3
+readonly E_FAILED_TO_CREATE_PATH=4
+readonly E_FAILED_TO_SET_PERMISSIONS=5
 
 
 readonly CURRENT_CONF_FILE="./config/7daystodie.conf"
@@ -76,6 +78,97 @@ create_role_account(){
   }
 }
 
+#######################################
+# Creates path using sudo
+# Globals:
+#  None
+# Arguments:
+#   directory_path
+# Returns:
+#   None
+#######################################
+create_path() {
+  local directory_path="${1}"
+  if ! sudo mkdir -p "${directory_path}" ; then
+    err "Failed to create ${directory_path}"
+    exit ${E_FAILED_TO_CREATE_PATH}
+  fi
+}
+
+#######################################
+# Recursively sets ownership
+# Globals:
+#  None
+# Arguments:
+#   directory_path
+#   owner
+#   group
+# Returns:
+#   None
+#######################################
+set_ownership() {
+  local directory_path="${1}"
+  local owner="${2}"
+  local group="${3}"
+  
+  if ! sudo chown -Rv "${owner}":"${group}" "${directory_path} ; then
+    err "Failed to set ownership for ${owner}:${group}"
+    exit ${E_FAILED_TO_SET_PERMISSIONS}
+  fi
+}
+
+#######################################
+# Creates paths for steam and application
+# Globals:
+#  CONF_STEAM_PATH
+#  CONF_STEAM_USER
+#  CONF_GAME_PATH
+#  CONF_GAME_PATH_APPLICATION
+#  CONF_GAME_PATH_SCRIPTS
+#  CONF_GAME_PATH_CONFIGS
+#  CONF_GAME_PATH_LIB
+#  CONF_GAME_PATH_LOGS
+#  CONF_GAME_PATH_SAVES
+#  CONF_GAME_PATH_BACKUPS
+# Arguments:
+#   None
+# Returns:
+#   None
+#######################################
+create_steam_paths(){
+
+  # create steam and app folders
+  create_path "${CONF_STEAM_PATH}"
+  create_path "${CONF_GAME_PATH}"
+  create_path "${CONF_GAME_PATH_APPLICATION}"
+  create_path "${CONF_GAME_PATH_SCRIPTS}"
+  create_path "${CONF_GAME_PATH_CONFIGS}"
+  create_path "${CONF_GAME_PATH_LIB}"
+
+  create_path "${CONF_GAME_PATH_LOGS}"
+  create_path "${CONF_GAME_PATH_SAVES}"
+  create_path "${CONF_GAME_PATH_BACKUPS}"
+
+  set_ownership "${CONF_STEAM_PATH}" "${CONF_STEAM_USER}" "${CONF_STEAM_USER}"
+  set_ownership "${CONF_GAME_PATH}" "${CONF_STEAM_USER}" "${CONF_STEAM_USER}"
+
+}
+
+
+#######################################
+# Copies the management scripts to the correct locations.
+# Globals:
+#   None
+# Arguments:
+#   None
+# Returns:
+#   None
+#######################################
+copy_management_scripts() {
+  #sudo cp 
+}
+
+
 
 #######################################
 # Installs everything
@@ -89,7 +182,8 @@ create_role_account(){
 do_install(){
   show_warning
   create_role_account
-
+  create_steam_paths
+  copy_management_scripts
 
 
 }
