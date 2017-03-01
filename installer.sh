@@ -305,7 +305,7 @@ install_dependencies(){
 #   None
 #######################################
 install_steamcmd() {
-  if [[ -f "${CONF_STEAM_PATH}"/steamcmd.sh" ]] ; then
+  if [[ -f "${CONF_STEAM_PATH}/steamcmd.sh" ]] ; then
     info 'The steamcmd tool is already installed.' 'y'
  
   else
