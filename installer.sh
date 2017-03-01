@@ -118,7 +118,7 @@ set_ownership() {
   local owner="${2}"
   local group="${3}"
   
-  if ! sudo chown -Rv "${owner}":"${group}" "${directory_path} ; then
+  if ! sudo chown -Rv "${owner}":"${group}" "${directory_path}" ; then
     err "Failed to set ownership for ${owner}:${group}"
     exit ${E_FAILED_TO_SET_PERMISSIONS}
   fi
