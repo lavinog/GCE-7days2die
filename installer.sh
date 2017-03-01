@@ -90,7 +90,7 @@ info() {
     'b')
       echo -e "\033[0;34m${message}\033[0m" ;;
     *)
-      echo ${message} ;;
+      echo "${message}" ;;
   esac
 }
 
