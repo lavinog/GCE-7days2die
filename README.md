@@ -20,11 +20,18 @@ udp:26900-26903
 
 ### Login and install
 The following packages are required:
-None
+* unzip
+* lib32gcc1
+* telnet
+
+```
+sudo apt update
+sudo apt -y install unzip lib32gcc1 telnet
+```
 
 These packages are handy but not required:
 ```
-sudo apt install byobu telnet sysstat htop
+sudo apt install byobu sysstat htop
 
 ```
 At this point it is recommended that you start byobu so that if you get disconnected, it wont terminate your session.
@@ -32,12 +39,16 @@ At this point it is recommended that you start byobu so that if you get disconne
 byobu
 ```
 
-Use the following to download the installer and make it executable
+Use the following to download the repository and extract
 ```
-wget https://raw.githubusercontent.com/lavinog/GCE-7days2die/master/install.sh
-chmod 755 install.sh
+wget https://github.com/lavinog/GCE-7days2die/archive/master.zip
+unzip master.zip
+```
+Change to the new folder
+```
+cd GCE-7days2die-master
+```
 
-```
 
 The installer has the following default settings:
 ```
