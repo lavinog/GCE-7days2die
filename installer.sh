@@ -11,7 +11,6 @@ readonly APP_ID=294420
 readonly CURRENT_CONF_FILE="./config/7daystodie.conf"
 source "${CURRENT_CONF_FILE}"
 
-
 # Error Codes
 readonly E_CANCELLED=1
 readonly E_ROLE_ADD_FAILED=2
@@ -332,7 +331,19 @@ install_application() {
   fi
 }
 
-configure_server(){
+#######################################
+# Adds serverconfig.xml to config folder and adds save path
+# Globals:
+#   CONF_GAME_FILE_SERVER_CONFIG
+#   CONF_STEAM_USER
+#   CONF_GAME_PATH_APPLICATION
+#   CONF_GAME_PATH_SAVES
+# Arguments:
+#   None
+# Returns:
+#   None
+#######################################
+configure_server() {
 # Test if config file exists, if not copy from application
   if [[ -f "${CONF_GAME_FILE_SERVER_CONFIG}" ]] ; then
     info "${CONF_GAME_FILE_SERVER_CONFIG} already exists." 'g'
@@ -345,7 +356,66 @@ configure_server(){
   local find_str="<\!--property name=\"SaveGameFolder\"\s*value=\"absolute path\" \/-->"
   local replace_str="<property name=\"SaveGameFolder\"      value=\"${CONF_GAME_PATH_SAVES}\" \/>"
   sudo -u "${CONF_STEAM_USER}" sed -i -e "s/${find_str}/${replace_str}/" "${CONF_GAME_FILE_SERVER_CONFIG}"
+}
+
+#######################################
+# Creates systemd service file
+# Globals:
+#   SYSTEMD_FILE
+#   CONF_STEAM_USER
+#   CONF_GAME_PATH_SCRIPTS
+#   CONF_GAME_SERVICE_NAME
+# Arguments:
+#   None
+# Returns:
+#   None
+#######################################
+configure_systemd_service() {
+  local readonly systemd_file="/etc/systemd/system/${CONF_GAME_SERVICE_NAME}.service"
   
+  info "Creating ${systemd_file} using root" 'y'
+  sudo touch ${systemd_file}
+  sudo chmod 664 ${systemd_file}
+
+  cat <<EOF | sudo tee ${systemd_file} >/dev/null
+[Unit]
+Description=7 Days to Die Server
+After=network.target
+
+[Service]
+Type=idle
+User=${CONF_STEAM_USER}
+ExecStart=${CONF_GAME_PATH_SCRIPTS}/start_server.sh
+ExecStop=${CONF_GAME_PATH_SCRIPTS}/stop_server.sh
+KillSignal=SIGINT
+TimeoutStopSec=30
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+  # Reload Systemd and enable autostart
+  # use sudo systemctl disable service to disable autostart
+  info 'Updating systemd service list using root' 'y'
+  sudo systemctl daemon-reload
+  echo .
+  info "In order for the game server to start on boot, the service must be" 'y'
+  info "enabled.  This can be enabled using the following:" 'y'
+  info "   sudo systemctl enable ${CONF_GAME_SERVICE_NAME}" 'b'
+  echo .
+  info 'If not enabled, you will need to start the service manually using:' 'y'
+  info "   sudo systemctl start ${CONF_GAME_SERVICE_NAME}" 'b'
+  echo .
+  info "Do you want the game server to start on boot? (y/n)" 'y'
+  read -t30 -n1 -r KEY
+  echo .
+  if [ "${KEY}" == "y" ]; then
+      info 'Setting service to autostart' 'g'
+      sudo systemctl enable "${CONF_GAME_SERVICE_NAME}"
+  else
+      info 'Setting service to not autostart' 'r'
+      sudo systemctl disable "${CONF_GAME_SERVICE_NAME}"
+  fi  
 }
 
 #######################################
@@ -365,6 +435,8 @@ do_install(){
   install_dependencies
   install_steamcmd
   install_application
+  configure_server
+  configure_systemd_service
 }
 
 
