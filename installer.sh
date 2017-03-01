@@ -254,22 +254,25 @@ fix_permissions() {
 #   None
 #######################################
 install_dependencies(){
-  info "The following packages are required and will be installed:" 'y'
-  info " * lib32gcc1" 'b'
-  info " * telnet" 'b'
-  echo .
-  info 'Do you wish to continue? (y/n)' 'y'
-  read -t30 -n1 -r KEY
-  echo .
-  if [ "${KEY}" == "y" ]; then
-      info 'Installing packages' 'g'
+  if dpkg-query -W lib32gcc1 telnet >/dev/null ; then
+    info "Required dependencies are met" "g"
   else
+    info "The following packages are required and will be installed:" 'y'
+    info " * lib32gcc1" 'b'
+    info " * telnet" 'b'
+    echo .
+    info 'Do you wish to continue? (y/n)' 'y'
+    read -t30 -n1 -r KEY
+    echo .
+    if [ "${KEY}" == "y" ]; then
+      info 'Installing packages' 'g'
+      sudo apt update
+      sudo apt -y install lib32gcc1 telnet
+    else
       info 'Cancelling install' 'r'
       exit "${E_CANCELLED}"
+    fi
   fi
-  sudo apt update
-  sudo apt -y install lib32gcc1 telnet
-  
 }
 
 
@@ -321,7 +324,8 @@ install_application() {
   if [ "${KEY}" == "y" ]; then
       info 'Installing application' 'g'
       sudo -u "${CONF_STEAM_USER}" "${CONF_STEAM_PATH}"/steamcmd.sh \
-        +login anonymous +force_install_dir "${CONF_GAME_PATH}" +app_update "${APP_ID}" +quit
+        +login anonymous +force_install_dir "${CONF_GAME_PATH_APPLICATION}" \
+        +app_update "${APP_ID}" +quit
   else
       info 'Cancelling install' 'r'
       exit "${E_CANCELLED}"
