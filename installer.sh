@@ -17,6 +17,7 @@ readonly E_ROLE_ADD_FAILED=2
 readonly E_USER_GROUP_ADD_FAILED=3
 readonly E_FAILED_TO_CREATE_PATH=4
 readonly E_FAILED_TO_SET_PERMISSIONS=5
+readonly E_FAILED_TO_CREATE_LINK=6
 
 
 
@@ -223,6 +224,22 @@ copy_management_scripts() {
   fix_permissions
 }
 
+#######################################
+# Creates a symbolic link for the script configs to /etc
+# Globals:
+#   None
+# Arguments:
+#   None
+# Returns:
+#   None
+#######################################
+link_script_config_file() {
+  info "linking ${CONF_GAME_PATH_LIB}/7daystodie.conf to /etc/7daystodie.conf" 'y'
+  if ! sudo cp -sv "${CONF_GAME_PATH_LIB}/7daystodie.conf" "/etc/7daystodie.conf" ; then
+  err "Failed to create symbolic link to /etc/7daystodie.conf"
+  exit "${E_FAILED_TO_CREATE_LINK}"
+  fi
+}
 
 #######################################
 # Sets the permissions on various files
@@ -419,6 +436,41 @@ EOF
 }
 
 #######################################
+# Presents user with final documentation
+# Globals:
+#   None
+# Arguments:
+#   None
+# Returns:
+#   None
+#######################################
+finalize() {
+  info 'Installation is complete' 'g'
+  echo .
+  info 'It is recommended that you edit the server config file using:' 'y'
+  info "   nano ${CONF_GAME_FILE_SERVER_CONFIG}" 'b'
+  echo .
+  info 'You can use the following commands to manage the server:' 'g'
+  echo .
+  info 'To manually start the server:' 'g'
+  info "   sudo systemctl start ${CONF_GAME_SERVICE_NAME}" 'b'
+  echo .
+  info 'To manually stop the server:' 'g'
+  info "   sudo systemctl start ${CONF_GAME_SERVICE_NAME}" 'b'
+  echo .
+  info 'To disable auto start on boot:' 'g'
+  info "   sudo systemctl disable ${CONF_GAME_SERVICE_NAME}" 'b'
+  echo .
+  info 'To enable auto start on boot:' 'g'
+  info "   sudo systemctl enable ${CONF_GAME_SERVICE_NAME}" 'b'
+  echo .
+  info 'To console into the server:' 'g'
+  info "   telnet localhost 8081" 'b'
+  echo .
+
+}
+
+#######################################
 # Installs everything
 # Globals:
 #   None
@@ -432,11 +484,13 @@ do_install(){
   create_role_account
   create_steam_paths
   copy_management_scripts
+  link_script_config_file
   install_dependencies
   install_steamcmd
   install_application
   configure_server
   configure_systemd_service
+  finalize
 }
 
 
