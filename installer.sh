@@ -354,3 +354,4 @@ do_install(){
 main(){
   do_install
 }
+main
