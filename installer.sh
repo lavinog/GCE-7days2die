@@ -39,7 +39,7 @@ show_warning() {
   grep CONF "${CURRENT_CONF_FILE}"
   echo '-------------------------------------------'
   echo .
-  echo 'Additionally, this script will be running commands as root to do the following:
+  echo 'Additionally, this script will be running commands as root to do the following:'
   echo " * Create ${CONF_STEAM_USER} user"
   echo " * Create ${CONF_STEAM_PATH} folder"
   echo " * Create ${CONF_GAME_PATH} folder"
