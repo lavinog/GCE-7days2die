@@ -236,9 +236,9 @@ copy_management_scripts() {
 #######################################
 link_script_config_file() {
   info "linking ${CONF_GAME_PATH_CONFIGS}/7daystodie.conf to /etc/7daystodie.conf" 'y'
-  if ! sudo cp -sv "${CONF_GAME_PATH_CONFIGS}/7daystodie.conf" "/etc/7daystodie.conf" ; then
-  err "Failed to create symbolic link to /etc/7daystodie.conf"
-  exit "${E_FAILED_TO_CREATE_LINK}"
+  if ! sudo cp -sv --force "${CONF_GAME_PATH_CONFIGS}/7daystodie.conf" "/etc/7daystodie.conf" ; then
+    err "Failed to create symbolic link to /etc/7daystodie.conf"
+    exit "${E_FAILED_TO_CREATE_LINK}"
   fi
 }
 
