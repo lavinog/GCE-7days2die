@@ -227,15 +227,16 @@ copy_management_scripts() {
 #######################################
 # Creates a symbolic link for the script configs to /etc
 # Globals:
-#   None
+#   CONF_GAME_PATH_CONFIGS
+#   E_FAILED_TO_CREATE_LINK
 # Arguments:
 #   None
 # Returns:
 #   None
 #######################################
 link_script_config_file() {
-  info "linking ${CONF_GAME_PATH_LIB}/7daystodie.conf to /etc/7daystodie.conf" 'y'
-  if ! sudo cp -sv "${CONF_GAME_PATH_LIB}/7daystodie.conf" "/etc/7daystodie.conf" ; then
+  info "linking ${CONF_GAME_PATH_CONFIGS}/7daystodie.conf to /etc/7daystodie.conf" 'y'
+  if ! sudo cp -sv "${CONF_GAME_PATH_CONFIGS}/7daystodie.conf" "/etc/7daystodie.conf" ; then
   err "Failed to create symbolic link to /etc/7daystodie.conf"
   exit "${E_FAILED_TO_CREATE_LINK}"
   fi
@@ -391,8 +392,8 @@ configure_systemd_service() {
   local readonly systemd_file="/etc/systemd/system/${CONF_GAME_SERVICE_NAME}.service"
   
   info "Creating ${systemd_file} using root" 'y'
-  sudo touch ${systemd_file}
-  sudo chmod 664 ${systemd_file}
+  sudo touch "${systemd_file}"
+  sudo chmod 664 "${systemd_file}"
 
   cat <<EOF | sudo tee ${systemd_file} >/dev/null
 [Unit]
