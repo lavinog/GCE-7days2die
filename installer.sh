@@ -41,9 +41,9 @@ show_warning() {
       echo 'Installing'
   else
       echo 'Exiting.'
-      exit ${E_CANCELLED}
+      exit "${E_CANCELLED}"
   fi
-
+}
 
 #######################################
 # Displays error message in red to stdout and stderr
@@ -74,14 +74,14 @@ create_role_account(){
   id -u "${CONF_STEAM_USER}" >/dev/null 2>&1 || {
     sudo useradd -m "${CONF_STEAM_USER}" || {
       err "Failed to create ${CONF_STEAM_USER}"
-      exit ${E_ROLE_ADD_FAILED}
+      exit "${E_ROLE_ADD_FAILED}"
     }
   }
 
   # Add current user to CONF_STEAM_USER group
   sudo usermod -a -G "${CONF_STEAM_USER}" "${USER}" || {
     err "Failed to add ${USER} to group: ${CONF_STEAM_USER}"
-    exit ${E_USER_GROUP_ADD_FAILED}
+    exit "${E_USER_GROUP_ADD_FAILED}"
   }
 }
 
@@ -98,7 +98,7 @@ create_path() {
   local directory_path="${1}"
   if ! sudo mkdir -p "${directory_path}" ; then
     err "Failed to create ${directory_path}"
-    exit ${E_FAILED_TO_CREATE_PATH}
+    exit "${E_FAILED_TO_CREATE_PATH}"
   fi
 }
 
@@ -120,7 +120,7 @@ set_ownership() {
   
   if ! sudo chown -Rv "${owner}":"${group}" "${directory_path}" ; then
     err "Failed to set ownership for ${owner}:${group}"
-    exit ${E_FAILED_TO_SET_PERMISSIONS}
+    exit "${E_FAILED_TO_SET_PERMISSIONS}"
   fi
 }
 
@@ -209,15 +209,15 @@ install_dependencies(){
   sudo apt update
   sudo apt -y install lib32gcc1 telnet
   
-  if [[ "${install_byobu}"="y" ]] ; then
+  if [[ "${install_byobu}" = "y" ]] ; then
     sudo apt -y install byobu
   fi
   
-  if [[ "${install_sysstat}"="y" ]] ; then
+  if [[ "${install_sysstat}" = "y" ]] ; then
     sudo apt -y install sysstat
   fi
   
-  if [[ "${install_htop}"="y" ]] ; then
+  if [[ "${install_htop}" = "y" ]] ; then
     sudo apt -y install htop
   fi
 }
@@ -236,7 +236,7 @@ install_dependencies(){
 #######################################
 install_steamcmd() {
   curl -sqL "${STEAMCMD_DOWNLOAD}" \
-    | sudo -u ${CONF_STEAM_USER} tar zxvf - -C "${CONF_STEAM_PATH}"
+    | sudo -u "${CONF_STEAM_USER}" tar zxvf - -C "${CONF_STEAM_PATH}"
 }
 
 #######################################
@@ -251,8 +251,8 @@ install_steamcmd() {
 #   None
 #######################################
 install_application() {
-  sudo -u ${CONF_STEAM_USER} ${CONF_STEAM_PATH}/steamcmd.sh \
-    +login anonymous +force_install_dir ${CONF_GAME_PATH} +app_update ${APP_ID} +quit
+  sudo -u "${CONF_STEAM_USER}" "${CONF_STEAM_PATH}"/steamcmd.sh \
+    +login anonymous +force_install_dir "${CONF_GAME_PATH}" +app_update "${APP_ID}" +quit
 }
 
 #######################################
