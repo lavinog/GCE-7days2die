@@ -5,6 +5,14 @@
 # Following Google's bash style guide:
 # https://google.github.io/styleguide/shell.xml
 
+readonly STEAMCMD_DOWNLOAD="https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
+readonly APP_ID=294420
+
+readonly CURRENT_CONF_FILE="./config/7daystodie.conf"
+import "${CURRENT_CONF_FILE}"
+
+
+# Error Codes
 readonly E_CANCELLED=1
 readonly E_ROLE_ADD_FAILED=2
 readonly E_USER_GROUP_ADD_FAILED=3
@@ -12,8 +20,7 @@ readonly E_FAILED_TO_CREATE_PATH=4
 readonly E_FAILED_TO_SET_PERMISSIONS=5
 
 
-readonly CURRENT_CONF_FILE="./config/7daystodie.conf"
-import "${CURRENT_CONF_FILE}"
+
 
 
 #######################################
@@ -165,10 +172,88 @@ create_steam_paths(){
 #   None
 #######################################
 copy_management_scripts() {
-  #sudo cp 
+  sudo cp -V ./bin/* "${CONF_GAME_PATH_SCRIPTS}"
+  sudo cp -V ./lib/* "${CONF_GAME_PATH_LIB}"
+  sudo cp -V ./config/* "${CONF_GAME_PATH_CONFIGS}"
+  
+  set_ownership "${CONF_GAME_PATH}" "${CONF_STEAM_USER}" "${CONF_STEAM_USER}"
+  sudo chmod 755 "${CONF_GAME_PATH_SCRIPTS}"/*
 }
 
 
+
+#######################################
+# Installs required libraries and prompts user
+# if they want additional packages
+# Globals:
+#   None
+# Arguments:
+#   None
+# Returns:
+#   None
+#######################################
+install_dependencies(){
+  echo "The following packages are required and will be installed:"
+  echo " lib32gcc1 and telnet"
+  echo .
+  echo "Additional packages can be installed to assist with management:"
+  echo "  byobu : terminal multiplexer"
+  echo "  sysstat : system performance monitor"
+  echo "  htop : interactive process monitor"
+  read -n1 -p 'Install byobu (y/n)' install_byobu
+  read -n1 -p 'Install sysstat (y/n)' install_sysstat
+  read -n1 -p 'Install htop (y/n)' install_htop
+  
+  
+
+  sudo apt update
+  sudo apt -y install lib32gcc1 telnet
+  
+  if [[ "${install_byobu}"="y" ]] ; then
+    sudo apt -y install byobu
+  fi
+  
+  if [[ "${install_sysstat}"="y" ]] ; then
+    sudo apt -y install sysstat
+  fi
+  
+  if [[ "${install_htop}"="y" ]] ; then
+    sudo apt -y install htop
+  fi
+}
+
+
+#######################################
+# Installs steamcmd
+# Globals:
+#   CONF_STEAM_PATH
+#   CONF_STEAM_USER
+#   STEAMCMD_DOWNLOAD
+# Arguments:
+#   None
+# Returns:
+#   None
+#######################################
+install_steamcmd() {
+  curl -sqL "${STEAMCMD_DOWNLOAD}" \
+    | sudo -u ${CONF_STEAM_USER} tar zxvf - -C "${CONF_STEAM_PATH}"
+}
+
+#######################################
+# Installs application using steamcmd
+# Globals:
+#   CONF_STEAM_USER
+#   CONF_GAME_PATH
+#   APP_ID
+# Arguments:
+#   None
+# Returns:
+#   None
+#######################################
+install_application() {
+  sudo -u ${CONF_STEAM_USER} ${CONF_STEAM_PATH}/steamcmd.sh \
+    +login anonymous +force_install_dir ${CONF_GAME_PATH} +app_update ${APP_ID} +quit
+}
 
 #######################################
 # Installs everything
@@ -184,7 +269,9 @@ do_install(){
   create_role_account
   create_steam_paths
   copy_management_scripts
-
+  install_dependencies
+  install_steamcmd
+  install_application
 
 }
 
