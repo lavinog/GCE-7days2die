@@ -9,7 +9,7 @@ readonly STEAMCMD_DOWNLOAD="https://steamcdn-a.akamaihd.net/client/installer/ste
 readonly APP_ID=294420
 
 readonly CURRENT_CONF_FILE="./config/7daystodie.conf"
-import "${CURRENT_CONF_FILE}"
+source "${CURRENT_CONF_FILE}"
 
 
 # Error Codes
