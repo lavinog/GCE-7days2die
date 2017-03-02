@@ -85,29 +85,37 @@ The installer will do the following:
 8. Copy the default serverconfig.xml to the config folder and set the SaveGameFolder setting.
 9. Configure a systemd config file and enable the server to be autostarted.
 
-To prevent the server from auto starting use the following command:
-```
-sudo systemctl disable game-7d2d
-```
+It is recommended that you edit the server config file using:
+   ```
+   nano /opt/7DaysToDie/config/serverconfig.xml
+   ```
 
-To reenable the auto start:
-```
-sudo systemctl enable game-7d2d
-```
+You can use the following commands to manage the server:
+
 To manually start the server:
-```
-sudo systemctl start game-7d2d
-```
-And to stop it:
-```
-sudo systemctl stop game-7d2d
-```
+   ```
+   sudo systemctl start game-7daystodie
+   ```
 
-It is recommended that you edit the serverconfig.xml file located in the game folder before starting it.
-Since it is writable only by the role account you will need to use sudo to edit it:
-```
-sudo nano /opt/steam/7d2d/serverconfig.xml
-```
+To manually stop the server:
+   ```
+   sudo systemctl start game-7daystodie
+   ```
+
+To disable auto start on boot:
+   ```
+   sudo systemctl disable game-7daystodie
+   ```
+
+To enable auto start on boot:
+   ```
+   sudo systemctl enable game-7daystodie
+   ```
+
+To console into the server:
+   ```
+   telnet localhost 8081
+   ```
 
 
 
