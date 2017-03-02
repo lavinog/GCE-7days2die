@@ -45,10 +45,7 @@ It is recommended that you install byobu so that if you get disconnected, it won
 sudo apt install byobu
 byobu
 ```
-*Note, you can exit byobu with ctrl-a,d*
-
-You can toggle the launch of Byobu at login with:
-  'byobu-disable' and 'byobu-enable'
+*Note, you can detath byobu with F6 and get help with F1*
 
 #### Download and run installer
 Use the following to download the repository and extract
