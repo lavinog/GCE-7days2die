@@ -15,8 +15,15 @@ http://console.cloud.google.com
 
 
 ### Configure Network Settings
-tcp:26900-26901
-udp:26900-26903
+In order for the server to be visible in the server list, you will need to create a firewall rule in the networking section of the instance:
+
+Field|Setting
+---|---
+Name|gameconnection
+Description|Ports for 7d2d connection and server query
+Network|default
+Source filter|Allow from any source (0.0.0.0/0)
+Allowed protocols and ports|tcp:26900-26901; udp:26900-26903
 
 ### Login and install
 Start a SSH session throught the GCE interface
