@@ -47,6 +47,9 @@ byobu
 ```
 *Note, you can exit byobu with ctrl-a,d*
 
+You can toggle the launch of Byobu at login with:
+  'byobu-disable' and 'byobu-enable'
+
 #### Download and run installer
 Use the following to download the repository and extract
 ```
