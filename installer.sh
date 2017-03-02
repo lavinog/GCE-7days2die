@@ -245,7 +245,11 @@ link_script_config_file() {
 #######################################
 # Sets the permissions on various files
 # Globals:
-#   None
+#   CONF_STEAM_USER
+#   CONF_GAME_PATH_SCRIPTS
+#   CONF_GAME_PATH_LIB
+#   CONF_GAME_PATH_CONFIGS
+#   CONF_GAME_PATH_APPLICATION
 # Arguments:
 #   None
 # Returns:
@@ -254,11 +258,21 @@ link_script_config_file() {
 fix_permissions() {
   set_ownership "${CONF_GAME_PATH}" "${CONF_STEAM_USER}" "${CONF_STEAM_USER}"
   info 'Setting file permissions using sudo' 'y'
-  sudo chmod -v 755 "${CONF_GAME_PATH_SCRIPTS}"/*
-  sudo chmod -v 644 "${CONF_GAME_PATH_LIB}"/*
-  sudo chmod -v 664 "${CONF_GAME_PATH_CONFIGS}"/*
-}
+  sudo -u "${CONF_STEAM_USER}" chmod -v 755 "${CONF_GAME_PATH_SCRIPTS}"/*
+  sudo -u "${CONF_STEAM_USER}" chmod -v 644 "${CONF_GAME_PATH_LIB}"/*
+  sudo -u "${CONF_STEAM_USER}" chmod -v 664 "${CONF_GAME_PATH_CONFIGS}"/*
 
+  # Removes execution bit to all files in the application folder 
+  # Steamcmd installs all files as executables
+  sudo -u "${CONF_STEAM_USER}" find "${CONF_GAME_PATH_APPLICATION}" \
+      -type f -exec chmod 644 {} \;
+  # Set only the two binary files to be executable
+  if [[ -f "${CONF_GAME_PATH_APPLICATION}/7DaysToDieServer.x86_64" ]] ; then
+    sudo -u "${CONF_STEAM_USER}" chmod ug+x \
+        "${CONF_GAME_PATH_APPLICATION}/7DaysToDieServer.x86" \
+        "${CONF_GAME_PATH_APPLICATION}/7DaysToDieServer.x86_64"
+  fi
+}
 
 #######################################
 # Installs required libraries and prompts user
