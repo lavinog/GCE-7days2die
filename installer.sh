@@ -408,7 +408,43 @@ configure_server() {
   fi
 
 }
-
+#######################################
+# Adds creates cron job to backup server
+# Globals:
+#   CONF_GAME_FILE_SERVER_CONFIG
+#   CONF_STEAM_USER
+#   CONF_GAME_PATH_SCRIPTS
+# Arguments:
+#   None
+# Returns:
+#   None
+#######################################
+configure_backups() {
+  local fullcmd="${CONF_GAME_PATH_SCRIPTS}/backup_save_full.sh"
+  local diffcmd="${CONF_GAME_PATH_SCRIPTS}/backup_save_diff.sh"
+  echo
+  info "Manual backups can be started as follows:" 'y'
+  info 'Full backup:' 'b'
+  info "  sudo -u ${CONF_STEAM_USER} ${fullcmd}" 'b'
+  info 'Differential backup:' 'b'
+  info "  sudo -u ${CONF_STEAM_USER} ${diffcmd}" 'b'
+  echo
+  info 'These backups can be configured to automatically run:' 'y'
+  info '  Full backup daily' 'b'
+  info '  Diff backup hourly' 'b'
+  echo
+  info "Do you want the game server to start on boot? (y/n)" 'y'
+  read -t30 -n1 -r KEY
+  echo
+  if [ "${KEY}" == "y" ]; then        
+    info 'Setting service to autostart' 'g'               
+     { echo "0 0 * * * ${fullcmd}"; \
+         echo "0 1-23 * * * ${diffcmd}"; } \
+         | sudo -u "${CONF_STEAM_USER}" crontab -
+  else                        
+    info 'Not configuring auto backups' 'r'
+  fi                      
+}
 #######################################
 # Creates systemd service file
 # Globals:
@@ -523,6 +559,7 @@ do_install(){
   install_steamcmd
   install_application
   configure_server
+  configure_backups
   configure_systemd_service
   finalize
 }
