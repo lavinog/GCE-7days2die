@@ -54,7 +54,7 @@ do_diff_backup(){
         --verbose \
         --gzip \
         --file="${tar_file}" \
-        --listed-incremental="${CONF_GAME_BACKUP_SNAPSHOT_FILE}_diff" \
+        --listed-incremental="${temp_snapshot}" \
         --level=1 \
         "${CONF_GAME_PATH_SAVES}" \
         "${CONF_GAME_PATH_LOGS}" \
