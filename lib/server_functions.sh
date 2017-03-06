@@ -28,7 +28,7 @@ do_full_backup(){
   check_user
   force_save
   sleep 1
-  
+
   # rm ${CONF_GAME_BACKUP_SNAPSHOT_FILE}
   local tar_file="${CONF_GAME_PATH_BACKUPS}/${CONF_GAME_BACKUP_FULL_PREFIX}$(date +${CONF_GAME_BACKUP_DATE_FORMAT}).tar.gz"
   tar --create \
@@ -37,14 +37,17 @@ do_full_backup(){
       --file="${tar_file}" \
       --listed-incremental="${CONF_GAME_BACKUP_SNAPSHOT_FILE}" \
       --level=0 \
-      "${CONF_GAME_PATH_SAVES}"
+      "${CONF_GAME_PATH_SAVES}" \
+      "${CONF_GAME_PATH_LOGS}" \
+      "${CONF_GAME_PATH_CONFIGS}"
 }
 
 do_diff_backup(){
   check_user
   if [ -r "${CONF_GAME_BACKUP_SNAPSHOT_FILE}" ]; then
     force_save
-    cp "${CONF_GAME_BACKUP_SNAPSHOT_FILE}" "${CONF_GAME_BACKUP_SNAPSHOT_FILE}_diff"
+    local temp_snapshot="$(tempfile -p bk_ -s _diff_snapshot)"
+    cp "${CONF_GAME_BACKUP_SNAPSHOT_FILE}" "${temp_snapshot}"
     sleep 1
     local tar_file="${CONF_GAME_PATH_BACKUPS}/${CONF_GAME_BACKUP_DIFF_PREFIX}$(date +${CONF_GAME_BACKUP_DATE_FORMAT}).tar.gz"
     tar --create \
@@ -53,9 +56,13 @@ do_diff_backup(){
         --file="${tar_file}" \
         --listed-incremental="${CONF_GAME_BACKUP_SNAPSHOT_FILE}_diff" \
         --level=1 \
-        "${CONF_GAME_PATH_SAVES}"
-    rm "${CONF_GAME_BACKUP_SNAPSHOT_FILE}_diff"
+        "${CONF_GAME_PATH_SAVES}" \
+        "${CONF_GAME_PATH_LOGS}" \
+        "${CONF_GAME_PATH_CONFIGS}"
+    # Remove temporary diff file
+    rm "${temp_snapshot}"
   else
+    # snapshot file didn't exist
     do_full_backup
   fi
 }
