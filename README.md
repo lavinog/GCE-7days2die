@@ -36,7 +36,7 @@ The following packages are required:
 
 ```
 sudo apt update
-sudo apt -y install unzip lib32gcc1 telnet
+sudo apt -y install unzip lib32gcc1 telnet netcat
 
 ```
 
