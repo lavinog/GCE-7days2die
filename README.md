@@ -33,6 +33,7 @@ The following packages are required:
 * unzip
 * lib32gcc1
 * telnet
+* netcat
 
 ```
 sudo apt update
