@@ -433,7 +433,7 @@ configure_backups() {
   info '  Full backup daily' 'b'
   info '  Diff backup hourly' 'b'
   echo
-  info "Do you want the game server to start on boot? (y/n)" 'y'
+  info "Do you want to enable scheduled backups? (y/n)" 'y'
   read -t30 -n1 -r KEY
   echo
   if [ "${KEY}" == "y" ]; then        
