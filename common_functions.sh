@@ -33,7 +33,7 @@ readonly E_FAILED_TO_CONFIGURE_SAVE=7
 # Returns:
 #   None
 #######################################
-show_warning() {
+show_install_warning() {
   echo  'This script will install a 7 days to die server with the following settings:'
   echo '-------------------------------------------'
   grep CONF "${CURRENT_CONF_FILE}"
@@ -55,17 +55,37 @@ show_warning() {
   fi
 }
 
+
 #######################################
-# Displays error message in red to stdout and stderr
+# Displays information about updating to the user and prompts to continue.
+# Exits with E_CANCELLED if user presses anything but 'y'
 # Globals:
-#   None
+#   CURRENT_CONF_FILE
 # Arguments:
-#   message
+#   None
 # Returns:
 #   None
 #######################################
-err() {
-  echo -e "\033[0;31m${1}\033[0m" 1>&2
+show_update_warning() {
+  echo  'This script will update the 7 days to die server with the following settings:'
+  echo '-------------------------------------------'
+  grep CONF "${CURRENT_CONF_FILE}"
+  echo '-------------------------------------------'
+  echo
+  echo 'This script will be running commands as root to do the following:'
+  echo " * Shutdown the ${CONF_GAME_SERVICE_NAME} service"
+  echo " * Update the application files in ${CONF_GAME_PATH}"
+  echo " * Start the ${CONF_GAME_SERVICE_NAME} service"
+  echo
+  info 'Do you wish to continue? (y/n)' 'y'
+  read -t30 -n1 -r KEY
+  echo
+  if [ "${KEY}" == "y" ]; then
+      info 'Starting Update' 'g'
+  else
+      info 'Cancelling Update' 'r'
+      exit "${E_CANCELLED}"
+  fi
 }
 
 #######################################
@@ -291,6 +311,7 @@ install_dependencies(){
     info "The following packages are required and will be installed:" 'y'
     info " * lib32gcc1" 'b'
     info " * telnet" 'b'
+    info " * netcat" 'b'
     echo
     info 'Do you wish to continue? (y/n)' 'y'
     read -t30 -n1 -r KEY
@@ -298,7 +319,7 @@ install_dependencies(){
     if [ "${KEY}" == "y" ]; then
       info 'Installing packages' 'g'
       sudo apt update
-      sudo apt -y install lib32gcc1 telnet
+      sudo apt -y install lib32gcc1 telnet netcat
     else
       info 'Cancelling install' 'r'
       exit "${E_CANCELLED}"
@@ -433,7 +454,7 @@ configure_backups() {
   info '  Full backup daily' 'b'
   info '  Diff backup hourly' 'b'
   echo
-  info "Do you want to enable scheduled backups? (y/n)" 'y'
+  info "Do you want the game server to start on boot? (y/n)" 'y'
   read -t30 -n1 -r KEY
   echo
   if [ "${KEY}" == "y" ]; then        
@@ -550,7 +571,7 @@ finalize() {
 #   None
 #######################################
 do_install(){
-  show_warning
+  show_install_warning
   create_role_account
   create_steam_paths
   copy_management_scripts
@@ -564,11 +585,20 @@ do_install(){
   finalize
 }
 
-
 #######################################
-# Main
+# Installs everything
+# Globals:
+#   None
+# Arguments:
+#   None
+# Returns:
+#   None
 #######################################
-main(){
-  do_install
+do_update(){
+  show_update_warning
+  sudo systemctl stop ${CONF_GAME_SERVICE_NAME}
+  install_application
+  sleep 2
+  sudo systemctl start ${CONF_GAME_SERVICE_NAME}
 }
-main
+
