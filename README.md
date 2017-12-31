@@ -1,7 +1,7 @@
 # GCE-7days2die
 Setup scripts for configuring and managing a 7 days to die server on Google Compute Engine
 
-Google gives you $300 of cloud compute resources to use for 60 days.
+Google gives you $300 of cloud compute resources to use for 1 year.
 
 
 ## GCE Setup
