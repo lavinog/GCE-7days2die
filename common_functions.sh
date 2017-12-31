@@ -539,7 +539,7 @@ finalize() {
   info 'Installation is complete' 'g'
   echo .
   info 'It is recommended that you edit the server config file using:' 'y'
-  info "   nano ${CONF_GAME_FILE_SERVER_CONFIG}" 'b'
+  info "   sudo nano ${CONF_GAME_FILE_SERVER_CONFIG}" 'b'
   echo
   info 'You can use the following commands to manage the server:' 'g'
   echo
