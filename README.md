@@ -28,6 +28,14 @@ Allowed protocols and ports|tcp:26900-26901; udp:26900-26903
 ### Login and install
 Start a SSH session throught the GCE interface
 
+#### Install byobu
+It is recommended that you install byobu so that if you get disconnected, it wont terminate your session.
+```
+sudo apt install byobu
+byobu
+```
+*Note, you can detach byobu with F6 and get help with F1*
+
 #### Install dependencies
 The following packages are required:
 * unzip
@@ -40,13 +48,6 @@ sudo apt update
 sudo apt -y install unzip lib32gcc1 telnet netcat
 
 ```
-
-It is recommended that you install byobu so that if you get disconnected, it wont terminate your session.
-```
-sudo apt install byobu
-byobu
-```
-*Note, you can detath byobu with F6 and get help with F1*
 
 #### Download and run installer
 Use the following to download the repository and extract
@@ -68,7 +69,7 @@ There shouldn't be a need to make changes to these settings, but you can modify 
 
 Run the installer:
 ```
-bash installer.sh
+bash install.sh
 ```
 *Note that you need to prefix it with bash since it is not executable.*
 *You could also make it executable, but it is not necessary*
