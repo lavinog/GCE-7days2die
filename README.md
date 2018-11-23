@@ -29,8 +29,9 @@ Allowed protocols and ports|tcp:26900-26901; udp:26900-26903
 Start a SSH session throught the GCE interface
 
 #### Install byobu
-It is recommended that you install byobu so that if you get disconnected, it wont terminate your session.
+It is recommended that you install [byobu](http://byobu.co/) so that if you get disconnected, it won't terminate your session.
 ```
+sudo apt update
 sudo apt install byobu
 byobu
 ```
@@ -43,9 +44,12 @@ The following packages are required:
 * telnet
 * netcat
 
+In addition, the following is also recommended, but not required:
+* bash-completion
+
 ```
 sudo apt update
-sudo apt -y install unzip lib32gcc1 telnet netcat
+sudo apt -y install unzip lib32gcc1 telnet netcat bash-completion
 
 ```
 
