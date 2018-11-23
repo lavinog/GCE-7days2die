@@ -5,11 +5,8 @@
 # Following Google's bash style guide:
 # https://google.github.io/styleguide/shell.xml
 
-readonly STEAMCMD_DOWNLOAD="https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz"
-readonly APP_ID=294420
 
-readonly CURRENT_CONF_FILE="./config/7daystodie.conf"
-source "${CURRENT_CONF_FILE}"
+CURRENT_CONF_FILE="./config/7daystodie.conf"
 
 # Error Codes
 readonly E_CANCELLED=1
@@ -20,6 +17,20 @@ readonly E_FAILED_TO_SET_PERMISSIONS=5
 readonly E_FAILED_TO_CREATE_LINK=6
 readonly E_FAILED_TO_CONFIGURE_SAVE=7
 
+# Identify if config already exists and test that it has the required
+# setting.  If not, exit.
+if [ -f /etc/7daystodie.conf ]; then
+  if grep --quiet 'CONF_GAME_APP_ID' /etc/7daystodie.conf; then
+    echo 'Using existing config: /etc/7daystodie.conf'
+    CURRENT_CONF_FILE='/etc/7daystodie.conf'
+  else
+    echo '!!!Existing configuration file found at /etc/7daystodie.conf does not have required setting!!!'
+    echo 'Please remove file before proceding:'
+    echo '  sudo rm /etc/7daystodie.conf'
+    exit "${E_CANCELLED}"
+  fi
+fi
+source "${CURRENT_CONF_FILE}"
 
 
 
@@ -34,7 +45,7 @@ readonly E_FAILED_TO_CONFIGURE_SAVE=7
 #   None
 #######################################
 show_install_warning() {
-  echo  'This script will install a 7 days to die server with the following settings:'
+  echo 'This script will install a 7 days to die server with the following settings:'
   echo '-------------------------------------------'
   grep CONF "${CURRENT_CONF_FILE}"
   echo '-------------------------------------------'
@@ -138,7 +149,7 @@ create_role_account(){
       exit "${E_ROLE_ADD_FAILED}"
     fi
   fi
-  
+
   # Add current user to CONF_STEAM_USER group
   info "Adding ${USER} user to ${CONF_STEAM_USER} group using sudo" 'y'
   if ! sudo usermod -a -G "${CONF_STEAM_USER}" "${USER}" ; then
@@ -180,7 +191,7 @@ set_ownership() {
   local directory_path="${1}"
   local owner="${2}"
   local group="${3}"
-  
+
   info "Changing ownership of ${directory_path} to ${owner}:${group} using sudo" 'y'
   if ! sudo chown -Rv "${owner}:${group}" "${directory_path}" ; then
     err "Failed to set ownership for ${owner}:${group}"
@@ -282,7 +293,7 @@ fix_permissions() {
   sudo -u "${CONF_STEAM_USER}" chmod -v 644 "${CONF_GAME_PATH_LIB}"/*
   sudo -u "${CONF_STEAM_USER}" chmod -v 664 "${CONF_GAME_PATH_CONFIGS}"/*
 
-  # Removes execution bit to all files in the application folder 
+  # Removes execution bit to all files in the application folder
   # Steamcmd installs all files as executables
   sudo -u "${CONF_STEAM_USER}" find "${CONF_GAME_PATH_APPLICATION}" \
       -type f -exec chmod 644 {} \;
@@ -342,7 +353,7 @@ install_dependencies(){
 install_steamcmd() {
   if [[ -f "${CONF_STEAM_PATH}/steamcmd.sh" ]] ; then
     info 'The steamcmd tool is already installed.' 'y'
- 
+
   else
     info "The steamcmd tool will be downloaded from:" 'y'
     info "    ${STEAMCMD_DOWNLOAD}" 'b'
@@ -381,7 +392,7 @@ install_application() {
       info 'Installing application' 'g'
       sudo -u "${CONF_STEAM_USER}" "${CONF_STEAM_PATH}"/steamcmd.sh \
         +login anonymous +force_install_dir "${CONF_GAME_PATH_APPLICATION}" \
-        +app_update "${APP_ID}" +quit
+        +app_update ${APP_ID} +quit
   else
       info 'Cancelling install' 'r'
       exit "${E_CANCELLED}"
@@ -409,7 +420,7 @@ configure_server() {
     if ! sudo -u "${CONF_STEAM_USER}" \
         cp -v "${CONF_GAME_PATH_APPLICATION}/serverconfig.xml" \
         "${CONF_GAME_FILE_SERVER_CONFIG}" ; then
-      
+
       err 'Could not copy serverconfig.xml'
       exit E_FAILED_TO_CONFIGURE_SAVE
     fi
@@ -457,14 +468,14 @@ configure_backups() {
   info "Do you want to enable automatic backups? (y/n)" 'y'
   read -t30 -n1 -r KEY
   echo
-  if [ "${KEY}" == "y" ]; then        
-    info 'Setting service to autostart' 'g'               
+  if [ "${KEY}" == "y" ]; then
+    info 'Setting service to autostart' 'g'
      { echo "0 0 * * * ${fullcmd}"; \
          echo "0 1-23 * * * ${diffcmd}"; } \
          | sudo -u "${CONF_STEAM_USER}" crontab -
-  else                        
+  else
     info 'Not configuring auto backups' 'r'
-  fi                      
+  fi
 }
 #######################################
 # Creates systemd service file
@@ -480,7 +491,7 @@ configure_backups() {
 #######################################
 configure_systemd_service() {
   local readonly systemd_file="/etc/systemd/system/${CONF_GAME_SERVICE_NAME}.service"
-  
+
   info "Creating ${systemd_file} using root" 'y'
   sudo touch "${systemd_file}"
   sudo chmod 664 "${systemd_file}"
@@ -523,7 +534,7 @@ EOF
   else
       info 'Setting service to not autostart' 'r'
       sudo systemctl disable "${CONF_GAME_SERVICE_NAME}"
-  fi  
+  fi
 }
 
 #######################################
