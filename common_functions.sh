@@ -8,6 +8,8 @@
 
 CURRENT_CONF_FILE="./config/7daystodie.conf"
 
+USE_EXISTING_CONFIG=false
+
 # Error Codes
 readonly E_CANCELLED=1
 readonly E_ROLE_ADD_FAILED=2
@@ -23,6 +25,7 @@ if [ -f /etc/7daystodie.conf ]; then
   if grep --quiet 'CONF_GAME_APP_ID' /etc/7daystodie.conf; then
     echo 'Using existing config: /etc/7daystodie.conf'
     CURRENT_CONF_FILE='/etc/7daystodie.conf'
+    USE_EXISTING_CONFIG=true
   else
     echo '!!!Existing configuration file found at /etc/7daystodie.conf does not have required setting!!!'
     echo 'Please remove file before proceding:'
@@ -250,7 +253,9 @@ copy_management_scripts() {
 
   sudo cp -v ./bin/* "${CONF_GAME_PATH_SCRIPTS}"
   sudo cp -v ./lib/* "${CONF_GAME_PATH_LIB}"
-  sudo cp -v ./config/* "${CONF_GAME_PATH_CONFIGS}"
+  if ! $USE_EXISTING_CONFIG; then
+    sudo cp -v ./config/* "${CONF_GAME_PATH_CONFIGS}"
+  fi
 
   fix_permissions
 }
@@ -316,7 +321,7 @@ fix_permissions() {
 #   None
 #######################################
 install_dependencies(){
-  if dpkg-query -W lib32gcc1 telnet >/dev/null ; then
+  if dpkg-query -W lib32gcc1 telnet netcat >/dev/null ; then
     info "Required dependencies are met" "g"
   else
     info "The following packages are required and will be installed:" 'y'
@@ -330,7 +335,7 @@ install_dependencies(){
     if [ "${KEY}" == "y" ]; then
       info 'Installing packages' 'g'
       sudo apt update
-      sudo apt -y install lib32gcc1 telnet netcat
+      sudo apt -y install lib32gcc1 telnet netcat bash-completion
     else
       info 'Cancelling install' 'r'
       exit "${E_CANCELLED}"
@@ -344,7 +349,7 @@ install_dependencies(){
 # Globals:
 #   CONF_STEAM_PATH
 #   CONF_STEAM_USER
-#   STEAMCMD_DOWNLOAD
+#   CONF_STEAMCMD_DOWNLOAD
 # Arguments:
 #   None
 # Returns:
@@ -356,14 +361,14 @@ install_steamcmd() {
 
   else
     info "The steamcmd tool will be downloaded from:" 'y'
-    info "    ${STEAMCMD_DOWNLOAD}" 'b'
+    info "    ${CONF_STEAMCMD_DOWNLOAD}" 'b'
     info "and extracted to ${CONF_STEAM_PATH}" 'y'
       info 'Do you wish to continue? (y/n)' 'y'
     read -t30 -n1 -r KEY
     echo
     if [ "${KEY}" == "y" ]; then
         info 'Installing steamcmd' 'g'
-        curl -sqL "${STEAMCMD_DOWNLOAD}" \
+        curl -sqL "${CONF_STEAMCMD_DOWNLOAD}" \
           | sudo -u "${CONF_STEAM_USER}" tar zxvf - -C "${CONF_STEAM_PATH}"
     else
         info 'Cancelling install' 'r'
@@ -377,14 +382,18 @@ install_steamcmd() {
 # Globals:
 #   CONF_STEAM_USER
 #   CONF_GAME_PATH
-#   APP_ID
+#   CONF_GAME_APP_ID
 # Arguments:
-#   None
+#   additional_args for steamcmd such as -validate
 # Returns:
 #   None
 #######################################
 install_application() {
-  info "The steamcmd tool will download and install the application" 'y'
+  additional_args=${1}
+  info 'The steamcmd tool will download/update the application using:' 'y'
+  info "sudo -u ${CONF_STEAM_USER} ${CONF_STEAM_PATH}/steamcmd.sh \
+	  +login anonymous +force_install_dir ${CONF_GAME_PATH_APPLICATION} \
+	  +app_update ${CONF_GAME_APP_ID} ${CONF_GAME_BETA_FLAG} ${additional_args} +quit" 'y'
   info 'Do you wish to continue? (y/n)' 'y'
   read -t30 -n1 -r KEY
   echo
@@ -392,7 +401,7 @@ install_application() {
       info 'Installing application' 'g'
       sudo -u "${CONF_STEAM_USER}" "${CONF_STEAM_PATH}"/steamcmd.sh \
         +login anonymous +force_install_dir "${CONF_GAME_PATH_APPLICATION}" \
-        +app_update ${APP_ID} +quit
+        +app_update ${CONF_GAME_APP_ID} ${CONF_GAME_BETA_FLAG} ${additional_args} +quit
   else
       info 'Cancelling install' 'r'
       exit "${E_CANCELLED}"
@@ -597,7 +606,7 @@ do_install(){
 }
 
 #######################################
-# Installs everything
+# Updates Steam Application
 # Globals:
 #   None
 # Arguments:
@@ -611,5 +620,23 @@ do_update(){
   install_application
   sleep 2
   sudo systemctl start ${CONF_GAME_SERVICE_NAME}
+}
+
+
+#######################################
+# Fixes Bad Steam Application
+# Globals:
+#   None
+# Arguments:
+#   None
+# Returns:
+#   None
+#######################################
+do_validate(){
+  show_update_warning
+  sudo systemctl stop ${CONF_GAME_SERVICE_NAME}
+  install_application -validate
+  sleep 2
+  #sudo systemctl start ${CONF_GAME_SERVICE_NAME}
 }
 
