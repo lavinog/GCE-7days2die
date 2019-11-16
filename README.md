@@ -43,13 +43,14 @@ The following packages are required:
 * lib32gcc1
 * telnet
 * netcat
+* wget
 
 In addition, the following is also recommended, but not required:
 * bash-completion
 
 ```
 sudo apt update
-sudo apt -y install unzip lib32gcc1 telnet netcat bash-completion
+sudo apt -y install unzip lib32gcc1 telnet netcat bash-completion wget
 
 ```
 
