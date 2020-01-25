@@ -436,7 +436,7 @@ configure_server() {
   fi
 
   info "Setting save path on ${CONF_GAME_FILE_SERVER_CONFIG}" 'y'
-  local find_str=""<\!--\s*<property name=\"SaveGameFolder\"\s*value=\"absolute path\" />\s*-->"
+  local find_str="<\!--\s*<property name=\"SaveGameFolder\"\s*value=\"absolute path\" />\s*-->"
   local replace_str="<property name=\"SaveGameFolder\"      value=\"${CONF_GAME_PATH_SAVES}\" />"
 
   if ! sudo -u "${CONF_STEAM_USER}" \
