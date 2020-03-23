@@ -47,6 +47,7 @@ The following packages are required:
 
 In addition, the following is also recommended, but not required:
 * bash-completion
+* vmtouch - can be used to read save files into memory.
 
 ```
 sudo apt update
