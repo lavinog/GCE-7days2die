@@ -44,6 +44,7 @@ The following packages are required:
 * telnet
 * netcat
 * wget
+* curl
 
 In addition, the following is also recommended, but not required:
 * bash-completion
@@ -51,7 +52,7 @@ In addition, the following is also recommended, but not required:
 
 ```
 sudo apt update
-sudo apt -y install unzip lib32gcc1 telnet netcat bash-completion wget
+sudo apt -y install unzip lib32gcc1 telnet netcat bash-completion wget curl
 
 ```
 
