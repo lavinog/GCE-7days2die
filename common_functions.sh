@@ -567,7 +567,7 @@ finalize() {
   info "   sudo systemctl start ${CONF_GAME_SERVICE_NAME}" 'b'
   echo
   info 'To manually stop the server:' 'g'
-  info "   sudo systemctl start ${CONF_GAME_SERVICE_NAME}" 'b'
+  info "   sudo systemctl stop ${CONF_GAME_SERVICE_NAME}" 'b'
   echo
   info 'To disable auto start on boot:' 'g'
   info "   sudo systemctl disable ${CONF_GAME_SERVICE_NAME}" 'b'
